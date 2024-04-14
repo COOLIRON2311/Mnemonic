@@ -5,6 +5,10 @@ using Util;
 
 namespace Ply
 {
+    /// <summary>
+    /// https://ru.wikipedia.org/wiki/PLY#ASCII_или_бинарный_формат
+    /// https://en.wikipedia.org/wiki/PLY_(file_format)
+    /// </summary>
     public class BinaryPlyReader
     {
         private readonly string path;
