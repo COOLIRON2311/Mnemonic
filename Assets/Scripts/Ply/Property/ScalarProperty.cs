@@ -7,10 +7,10 @@ namespace Ply
     {
         public string Type { get; private set; }
         public List<dynamic> Values { get; private set; }
-        public ScalarProperty(string name, string type) : base(name)
+        public ScalarProperty(string name, int count, string type) : base(name)
         {
             Type = type;
-            Values = new();
+            Values = new(count);
         }
         public override string ToString() => $"{Type} {Name}";
         public override void Read(BinaryReader br)

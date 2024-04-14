@@ -9,11 +9,11 @@ namespace Ply
         public string ValueType { get; private set; }
         public List<dynamic[]> Values { get; private set; }
 
-        public ListProperty(string name, string sizeType, string valueType) : base(name)
+        public ListProperty(string name, int number, string sizeType, string valueType) : base(name)
         {
             SizeType = sizeType;
             ValueType = valueType;
-            Values = new();
+            Values = new(number);
         }
         public override string ToString() => $"list {SizeType} {ValueType} {Name}";
         public override void Read(BinaryReader br)

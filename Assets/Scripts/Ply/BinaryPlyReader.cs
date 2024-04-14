@@ -1,17 +1,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Util;
 
 namespace Ply
 {
-    public class PlyReader
+    public class BinaryPlyReader
     {
         private readonly string path;
         private FileStream fs;
         private BinaryReader br;
         public List<Element> Data { get; private set; }
 
-        public PlyReader(string path)
+        public BinaryPlyReader(string path)
         {
             this.path = path;
             Data = new();
@@ -28,6 +29,8 @@ namespace Ply
             br.Close();
             fs.Close();
         }
+
+        public void Clear() => Data.Clear();
 
         private long ReadHeader()
         {
@@ -82,7 +85,9 @@ namespace Ply
                         string sizeType = tokens[1];
                         string valueType = tokens[2];
                         string name = tokens[3];
-                        Data[^1].Properties.Add(new ListProperty(name, sizeType, valueType));
+
+                        Element element = Data[^1];
+                        element.Properties.Add(new ListProperty(name, element.Count, sizeType, valueType));
                     }
 
                     // Scalar property
@@ -90,7 +95,9 @@ namespace Ply
                     {
                         string type = tokens[0];
                         string name = tokens[1];
-                        Data[^1].Properties.Add(new ScalarProperty(name, type));
+
+                        Element element = Data[^1];
+                        element.Properties.Add(new ScalarProperty(name, element.Count, type));
                     }
                 }
             }

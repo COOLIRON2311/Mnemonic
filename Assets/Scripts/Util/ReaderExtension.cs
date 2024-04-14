@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace Ply
+namespace Util
 {
-    public static class ReaderExtensions
+    public static class ReaderExtension
     {
         public static string ReadLine(this BinaryReader br)
         {
