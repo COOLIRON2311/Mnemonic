@@ -323,7 +323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 1
-  rotSpeed: 100
+  rotSpeed: 50
 --- !u!1 &1230589329
 GameObject:
   m_ObjectHideFlags: 0

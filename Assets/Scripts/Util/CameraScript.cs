@@ -5,13 +5,9 @@ using UnityEngine;
 
 public class CameraScript : MonoBehaviour
 {
-    private new Camera camera;
     [SerializeField] float walkSpeed = 1.0f;
     [SerializeField] float rotSpeed = 100.0f;
-    private void Awake()
-    {
-        camera = GetComponent<Camera>();
-    }
+    Vector3 currentEulerAngles;
 
     void Update()
     {
@@ -24,49 +20,40 @@ public class CameraScript : MonoBehaviour
         }
 
         if (Input.GetKey(KeyCode.W))
-        {
-            camera.transform.Translate(Time.deltaTime * walkSpeed * camera.transform.forward, Space.World);
-        }
+            transform.Translate(Time.deltaTime * walkSpeed * transform.forward, Space.World);
 
         if (Input.GetKey(KeyCode.S))
-        {
-            camera.transform.Translate(Time.deltaTime * walkSpeed * -camera.transform.forward, Space.World);
-        }
+            transform.Translate(Time.deltaTime * walkSpeed * -transform.forward, Space.World);
 
         if (Input.GetKey(KeyCode.A))
-        {
-            camera.transform.Translate(Time.deltaTime * walkSpeed * -camera.transform.right, Space.World);
-        }
+            transform.Translate(Time.deltaTime * walkSpeed * -transform.right, Space.World);
 
         if (Input.GetKey(KeyCode.D))
-        {
-            camera.transform.Translate(Time.deltaTime * walkSpeed * camera.transform.right, Space.World);
-        }
+            transform.Translate(Time.deltaTime * walkSpeed * transform.right, Space.World);
 
         float pitch = 0.0f;
         float yaw = 0.0f;
+        float roll = 0.0f;
 
-        if (Input.GetKey(KeyCode.UpArrow))
-        {
-            pitch += rotSpeed * Time.deltaTime;
-        }
+        if (Input.GetKey(KeyCode.Keypad8))
+            pitch = rotSpeed;
 
-        if (Input.GetKey(KeyCode.DownArrow))
-        {
-            pitch -= rotSpeed * Time.deltaTime;
-        }
+        if (Input.GetKey(KeyCode.Keypad5))
+            pitch = -rotSpeed;
 
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-             yaw -= rotSpeed * Time.deltaTime;
-        }
+        if (Input.GetKey(KeyCode.Keypad4))
+            yaw = -rotSpeed;
 
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            yaw += rotSpeed * Time.deltaTime;
-        }
+        if (Input.GetKey(KeyCode.Keypad6))
+            yaw = rotSpeed;
 
-        camera.transform.Rotate(0, yaw, 0, Space.World);
-        camera.transform.Rotate(-pitch, 0, 0, Space.Self);
+        if (Input.GetKey(KeyCode.Keypad7))
+            roll = rotSpeed;
+
+        if (Input.GetKey(KeyCode.Keypad9))
+            roll = -rotSpeed;
+
+        currentEulerAngles += Time.deltaTime * new Vector3(-pitch, yaw, roll);
+        transform.eulerAngles = currentEulerAngles;
     }
 }
