@@ -6,7 +6,7 @@ using UnityEngine;
 public class CameraScript : MonoBehaviour
 {
     private new Camera camera;
-    [SerializeField] float walkSpeed = 0.1f;
+    [SerializeField] float walkSpeed = 1.0f;
     [SerializeField] float rotSpeed = 100.0f;
     private void Awake()
     {
@@ -25,22 +25,22 @@ public class CameraScript : MonoBehaviour
 
         if (Input.GetKey(KeyCode.W))
         {
-            camera.transform.Translate(camera.transform.forward * walkSpeed, Space.World);
+            camera.transform.Translate(Time.deltaTime * walkSpeed * camera.transform.forward, Space.World);
         }
 
         if (Input.GetKey(KeyCode.S))
         {
-            camera.transform.Translate(-camera.transform.forward * walkSpeed, Space.World);
+            camera.transform.Translate(Time.deltaTime * walkSpeed * -camera.transform.forward, Space.World);
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            camera.transform.Translate(-camera.transform.right * walkSpeed, Space.World);
+            camera.transform.Translate(Time.deltaTime * walkSpeed * -camera.transform.right, Space.World);
         }
 
         if (Input.GetKey(KeyCode.D))
         {
-            camera.transform.Translate(camera.transform.right * walkSpeed, Space.World);
+            camera.transform.Translate(Time.deltaTime * walkSpeed * camera.transform.right, Space.World);
         }
 
         float pitch = 0.0f;

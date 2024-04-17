@@ -37,6 +37,17 @@ public class GaussianSplatsLoader : MonoBehaviour
             var vertex = data.Vertices[i];
             obj.transform.position = vertex.Position;
             obj.name = vertex.ToString();
+
+            if (plyType == PlyType.PointCloudData)
+            {
+                var vx = vertex as PointCloudData.Vertex;
+                var material = obj.GetComponent<Renderer>().material;
+                material.color = new Color(
+                    Mathf.Clamp(vx.Color[0] / 255.0f, 0.0f, 1.0f),
+                    Mathf.Clamp(vx.Color[1] / 255.0f, 0.0f, 1.0f),
+                    Mathf.Clamp(vx.Color[2] / 255.0f, 0.0f, 1.0f)
+                );
+            }
         }
     }
 }
