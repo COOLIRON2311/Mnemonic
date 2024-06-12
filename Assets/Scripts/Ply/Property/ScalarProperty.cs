@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -5,11 +6,11 @@ namespace Ply
 {
     public class ScalarProperty : Property
     {
-        public string Type { get; private set; }
-        public List<dynamic> Values { get; private set; }
+        public DType Type { get; private set; }
+        public List<object> Values { get; private set; }
         public ScalarProperty(string name, int count, string type) : base(name)
         {
-            Type = type;
+            Type = DTypes.FromString(type);
             Values = new(count);
         }
         public override string ToString() => $"{Type} {Name}";
@@ -17,28 +18,28 @@ namespace Ply
         {
             switch (Type)
             {
-                case "char" or "int8":
+                case DType.Int8:
                     Values.Add(br.ReadChar());
                     break;
-                case "uchar" or "uint8":
+                case DType.UInt8:
                     Values.Add(br.ReadByte());
                     break;
-                case "short" or "int16":
+                case DType.Int16:
                     Values.Add(br.ReadInt16());
                     break;
-                case "ushort" or "uint16":
+                case DType.UInt16:
                     Values.Add(br.ReadUInt16());
                     break;
-                case "int" or "int32":
+                case DType.Int32:
                     Values.Add(br.ReadInt32());
                     break;
-                case "uint" or "uint32":
+                case DType.UInt32:
                     Values.Add(br.ReadUInt32());
                     break;
-                case "float" or "float32":
+                case DType.Float32:
                     Values.Add(br.ReadSingle());
                     break;
-                case "double" or "float32":
+                case DType.Float64:
                     Values.Add(br.ReadDouble());
                     break;
                 default:

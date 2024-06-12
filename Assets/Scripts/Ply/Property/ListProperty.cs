@@ -5,14 +5,14 @@ namespace Ply
 {
     public class ListProperty : Property
     {
-        public string SizeType { get; private set; }
-        public string ValueType { get; private set; }
-        public List<dynamic[]> Values { get; private set; }
+        public DType SizeType { get; private set; }
+        public DType ValueType { get; private set; }
+        public List<object[]> Values { get; private set; }
 
         public ListProperty(string name, int number, string sizeType, string valueType) : base(name)
         {
-            SizeType = sizeType;
-            ValueType = valueType;
+            SizeType = DTypes.FromString(sizeType);
+            ValueType = DTypes.FromString(valueType);
             Values = new(number);
         }
         public override string ToString() => $"list {SizeType} {ValueType} {Name}";
@@ -20,12 +20,12 @@ namespace Ply
         {
             var count = SizeType switch
             {
-                "char" or "int8" => br.ReadChar(),
-                "uchar" or "uint8" => br.ReadByte(),
-                "short" or "int16" => (ulong)br.ReadInt16(),
-                "ushort" or "uint16" => br.ReadUInt16(),
-                "int" or "int32" => (ulong)br.ReadInt32(),
-                "uint" or "uint32" => br.ReadUInt32(),
+                DType.Int8 => br.ReadChar(),
+                DType.UInt8 => br.ReadByte(),
+                DType.Int16 => (ulong)br.ReadInt16(),
+                DType.UInt16 => br.ReadUInt16(),
+                DType.Int32 => (ulong)br.ReadInt32(),
+                DType.UInt32 => br.ReadUInt32(),
                 _ => throw new InvalidDataException($"invalid size type '{SizeType}'"),
             };
 
@@ -34,14 +34,14 @@ namespace Ply
             {
                 arr[i] = ValueType switch
                 {
-                    "char" or "int8" => br.ReadChar(),
-                    "uchar" or "uint8" => br.ReadByte(),
-                    "short" or "int16" => br.ReadInt16(),
-                    "ushort" or "uint16" => br.ReadUInt16(),
-                    "int" or "int32" => br.ReadInt32(),
-                    "uint" or "uint32" => br.ReadUInt32(),
-                    "float" or "float32" => br.ReadSingle(),
-                    "double" or "float32" => (dynamic)br.ReadDouble(),
+                    DType.Int8 => br.ReadChar(),
+                    DType.UInt8 => br.ReadByte(),
+                    DType.Int16 => br.ReadInt16(),
+                    DType.UInt16 => br.ReadUInt16(),
+                    DType.Int32 => br.ReadInt32(),
+                    DType.UInt32 => br.ReadUInt32(),
+                    DType.Float32 => br.ReadSingle(),
+                    DType.Float64 => (dynamic)br.ReadDouble(),
                     _ => throw new InvalidDataException($"invalid value type '{ValueType}'"),
                 };
             }
