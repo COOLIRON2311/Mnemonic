@@ -118,13 +118,7 @@ namespace Ply
                 for (int i = 0; i < element.Count; i++)
                 {
                     foreach (var property in element.Properties)
-                    {
-                        if (property is ScalarProperty scalar)
-                            scalar.Read(br);
-
-                        else if (property is ListProperty list)
-                            list.Read(br);
-                    }
+                        property.Read(br);
                 }
             }
         }
