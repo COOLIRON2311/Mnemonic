@@ -368,7 +368,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36a104f6ef4c4c04b8846a9e153f318e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  primitive: {fileID: 4786700899607510675, guid: 25157d32ad32fc040a9ec2cccbbc5337, type: 3}
+  primitive: {fileID: 6649337191022773074, guid: 5a434e677d396f547a3ecba8b8bf209c, type: 3}
   plyFilePath: data/point_cloud.ply
   plyType: 0
 --- !u!1660057539 &9223372036854775807
