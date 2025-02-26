@@ -75,3 +75,5 @@ crashlytics-build.properties
 # .ply data files
 data/*
 !data/.keep
+/[Aa]ssets/GaussianAssets/*
+!/[Aa]ssets/GaussianAssets/.keep

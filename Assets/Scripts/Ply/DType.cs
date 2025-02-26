@@ -1,5 +1,4 @@
 using System.IO;
-using Unity.VisualScripting;
 
 namespace Ply
 {
@@ -33,18 +32,14 @@ namespace Ply
             };
         }
 
-        public static string AsString(this DType dType)
+        public static int SizeOf(DType dType)
         {
             return dType switch
             {
-                DType.Int8 => "int8",
-                DType.UInt8 => "uint8",
-                DType.Int16 => "int16",
-                DType.UInt16 => "uint16",
-                DType.Int32 => "int32",
-                DType.UInt32 => "uint32",
-                DType.Float32 => "float32",
-                DType.Float64 => "float64",
+                DType.Int8 or DType.UInt8 => 1,
+                DType.Int16 or DType.UInt16 => 2,
+                DType.Int32 or DType.UInt32 or DType.Float32 => 4,
+                DType.Float64 => 8,
                 _ => throw new InvalidDataException($"invalid type '{dType}'")
             };
         }
