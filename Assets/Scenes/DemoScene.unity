@@ -368,7 +368,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9b48fbd5b1910c43bf6534852c52f57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gaussianData: {fileID: 0}
+  gaussianData: {fileID: 4900000, guid: 1d1fc74c143de6b48b681ffd918a98cc, type: 3}
+  material: {fileID: 2100000, guid: 8eb8d67f4136e774c80aeef59cac90b4, type: 2}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
