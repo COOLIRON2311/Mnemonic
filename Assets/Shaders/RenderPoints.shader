@@ -12,17 +12,7 @@ Shader "Unlit/RenderPoints"
             #pragma require compute
 
             #include "UnityCG.cginc"
-
-            struct Gaussian
-            {
-                float3 pos;
-                float3 norm;
-                float3 sh0;
-                float3 sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8, sh9, sh10, sh11, sh12, sh13, sh14, sh15;
-                float opacity;
-                float3 scale;
-                float4 rot;
-            };
+            #include "GaussianSplatting.hlsl"
 
             StructuredBuffer<Gaussian> _DataBuffer;
 
@@ -38,7 +28,7 @@ Shader "Unlit/RenderPoints"
                 v2f o;
                 Gaussian g = _DataBuffer[instID];
                 o.vertex = UnityObjectToClipPos(g.pos);
-                o.col.rgb = g.sh0;
+                o.col.rgb = g.shs.sh0;
                 o.col.a = g.opacity / 255;
                 o.psize = 10;
                 return o;
