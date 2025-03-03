@@ -1,4 +1,4 @@
-Shader "Unlit/RenderPoints"
+Shader "Gaussian Splatting/RenderPoints"
 {
     SubShader
     {

@@ -36,6 +36,13 @@ struct Gaussian
     float4 rot;
 };
 
+struct GSViewData
+{
+    float4 pos;
+    float4 conicRadius;
+    half4 color;
+};
+
 // Convert the input spherical harmonics coefficients of each Gaussian to a simple RGB color.
 // https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L20
 half3 GS_computeColorFromSH(SHData shs, half3 dir, int deg)
@@ -116,7 +123,19 @@ float3 GS_computeCov2D(float3 pos, float2 focal, float2 tanFov, float3 cov3D0, f
 
 // Convert scale and rotation properties of each Gaussian to a 3D covariance matrix in world space
 // https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L118
-void GS_computeCov3D(float3 scale, float mod, float4 rot, out float3 cov3D0, out float3 cov3D1)
+void GS_computeCov3D(float3x3 modelMatrix, out float3 cov3D0, out float3 cov3D1)
+{
+    float3x3 M = modelMatrix;
+
+    // Compute 3D world covariance matrix Sigma
+    float3x3 Sigma = mul(M, transpose(M));
+
+    // Covariance is symmetric, only store upper right
+    cov3D0 = float3(Sigma._m00, Sigma._m01, Sigma._m02);
+    cov3D1 = float3(Sigma._m11, Sigma._m12, Sigma._m22);
+}
+
+float3x3 computeModelMatrix(float3 scale, float mod, float4 rot)
 {
     // Create scaling matrix
     float3x3 S = float3x3(
@@ -138,13 +157,7 @@ void GS_computeCov3D(float3 scale, float mod, float4 rot, out float3 cov3D0, out
     );
 
     float3x3 M = mul(R, S);
-
-    // Compute 3D world covariance matrix Sigma
-    float3x3 Sigma = mul(M, transpose(M));
-
-    // Covariance is symmetric, only store upper right
-    cov3D0 = float3(Sigma._m00, Sigma._m01, Sigma._m02);
-    cov3D1 = float3(Sigma._m11, Sigma._m12, Sigma._m22);
+    return M;
 }
 
 #endif // __GAUSSIAN_SPLATTING_HLSL__
