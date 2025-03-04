@@ -6,8 +6,10 @@
 
 uint _SHDeg;
 float _ScaleModifier;
+float4x4 _MatrixLocalToWorld;
+float4x4 _MatrixWorldToLocal;
 
-float4x4 _WorldToCameraMatrix;
+float4x4 _MatrixWorldToCamera;
 StructuredBuffer<Gaussian> _GSDataBuffer;
 
 uint _Count;
@@ -20,16 +22,15 @@ float2 _TanFov;
 float3 _WorldCameraPos;
 float4x4 _MatrixV;
 float4x4 _MatrixVP;
-float4x4 _MatrixObjectToWorld;
-float4x4 _MatrixWorldToObject;
 RWStructuredBuffer<GSViewData> _GSViewBuffer;
 
 [numthreads(1024, 1, 1)]
 void GSSetSortIndices(uint3 id : SV_DISPATCHTHREADID)
 {
     uint idx = id.x;
-    if (idx < _CountPow2)
-        _SortKeys[idx] = idx;
+    if (idx >= _CountPow2)
+        return;
+    _SortKeys[idx] = idx;
 }
 
 [numthreads(1024, 1, 1)]
@@ -48,7 +49,9 @@ void GSComputeDistances(uint3 id : SV_DISPATCHTHREADID)
 
     uint i = _SortKeys[idx];
 
-    float3 pos = mul(_WorldToCameraMatrix, float4(_GSDataBuffer[i].pos * float3(1, 1, -1), 1)).xyz;
+    float3 pos = _GSDataBuffer[i].pos;
+    pos = mul(_MatrixLocalToWorld, float4(pos, 1)).xyz;
+    pos = mul(_MatrixWorldToCamera, float4(pos, 1)).xyz;
     // make distance sort friendly http://stereopsis.com/radix.html
     uint fu = asuint(pos.z);
     uint mask = - ((int) (fu >> 31)) | 0x80000000;
@@ -67,14 +70,14 @@ void GSProcess(uint3 id : SV_DISPATCHTHREADID)
 
     float3 centerWorldPos = splat.pos;
 
-    centerWorldPos = mul(_MatrixObjectToWorld, float4(centerWorldPos, 1)).xyz;
+    centerWorldPos = mul(_MatrixLocalToWorld, float4(centerWorldPos, 1)).xyz;
     float4 centerClipPos = mul(_MatrixVP, float4(centerWorldPos, 1));
     view.pos = centerClipPos;
 
     if (centerClipPos.w > 0) // not behind the camera
     {
         float3x3 modelMat = computeModelMatrix(splat.scale, _ScaleModifier, splat.rot);
-        modelMat = mul((float3x3)_MatrixObjectToWorld, modelMat);
+        modelMat = mul((float3x3)_MatrixLocalToWorld, modelMat);
 
         float3 cov3D0, cov3D1;
         GS_computeCov3D(modelMat, cov3D0, cov3D1);
@@ -92,7 +95,7 @@ void GSProcess(uint3 id : SV_DISPATCHTHREADID)
         view.conicRadius = float4(conic, radius);
 
         float3 worldViewDir = _WorldCameraPos - centerWorldPos;
-        float3 objViewDir = mul((float3x3)_MatrixWorldToObject, worldViewDir);
+        float3 objViewDir = mul((float3x3)_MatrixWorldToLocal, worldViewDir);
         objViewDir = normalize(objViewDir);
 
         view.color.rgb = GS_computeColorFromSH(splat.shs, objViewDir, _SHDeg);

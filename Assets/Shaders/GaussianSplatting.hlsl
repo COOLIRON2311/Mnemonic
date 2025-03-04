@@ -40,28 +40,28 @@ struct GSViewData
 {
     float4 pos;
     float4 conicRadius;
-    half4 color;
+    float4 color;
 };
 
 // Convert the input spherical harmonics coefficients of each Gaussian to a simple RGB color.
 // https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L20
-half3 GS_computeColorFromSH(SHData shs, half3 dir, int deg)
+float3 GS_computeColorFromSH(SHData shs, half3 dir, int deg)
 {
     dir = -dir;
 
-    half3 result = SH_C0 * shs.sh0;
+    float3 result = SH_C0 * shs.sh0;
 
     if (deg > 0)
     {
-        half x = dir.x;
-        half y = dir.y;
-        half z = dir.z;
+        float x = dir.x;
+        float y = dir.y;
+        float z = dir.z;
         result += SH_C1 * (-y * shs.sh1 + z * shs.sh2 - x * shs.sh3);
 
         if (deg > 1)
         {
-            half xx = x * x, yy = y * y, zz = z * z;
-            half xy = x * y, yz = y * z, xz = x * z;
+            float xx = x * x, yy = y * y, zz = z * z;
+            float xy = x * y, yz = y * z, xz = x * z;
             result += SH_C2[0] * xy * shs.sh4 +
             SH_C2[1] * yz * shs.sh5 +
             SH_C2[2] * (2.0 * zz - xx - yy) * shs.sh6 +
@@ -118,15 +118,17 @@ float3 GS_computeCov2D(float3 pos, float2 focal, float2 tanFov, float3 cov3D0, f
 
     float3x3 cov = mul(T, mul(Vrk, transpose(T)));
 
+    // Apply low-pass filter: every Gaussian should be at least
+	// one pixel wide/high. Discard 3rd row and column.
+    cov._m00 += 0.3;
+    cov._m11 += 0.3;
     return float3(cov._m00, cov._m01, cov._m11);
 }
 
 // Convert scale and rotation properties of each Gaussian to a 3D covariance matrix in world space
 // https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L118
-void GS_computeCov3D(float3x3 modelMatrix, out float3 cov3D0, out float3 cov3D1)
+void GS_computeCov3D(float3x3 M, out float3 cov3D0, out float3 cov3D1)
 {
-    float3x3 M = modelMatrix;
-
     // Compute 3D world covariance matrix Sigma
     float3x3 Sigma = mul(M, transpose(M));
 
@@ -158,6 +160,20 @@ float3x3 computeModelMatrix(float3 scale, float mod, float4 rot)
 
     float3x3 M = mul(R, S);
     return M;
+}
+
+// https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L350
+float2 computeScreenSpaceDelta(float2 positionXY, float2 centerXY, float4 projectionParams)
+{
+    float2 d = positionXY - centerXY;
+    d.y *= projectionParams.x;
+    return d;
+}
+
+// https://github.com/graphdeco-inria/diff-gaussian-rasterization/blob/main/cuda_rasterizer/forward.cu#L352
+float computePowerFromConic(float3 conic, float2 d)
+{
+    return -0.5 * (conic.x * d.x * d.x + conic.z * d.y * d.y) + conic.y * d.x * d.y;
 }
 
 #endif // __GAUSSIAN_SPLATTING_HLSL__
