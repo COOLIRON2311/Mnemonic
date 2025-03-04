@@ -9,6 +9,11 @@ public class CameraScript : MonoBehaviour
     [SerializeField] float rotSpeed = 100.0f;
     Vector3 currentEulerAngles;
 
+    private void Awake()
+    {
+        currentEulerAngles = transform.eulerAngles;
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))

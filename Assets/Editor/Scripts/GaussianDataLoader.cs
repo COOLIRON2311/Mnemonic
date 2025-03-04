@@ -30,10 +30,13 @@ public static class GaussianDataLoader
             return;
         }
 
-        var data = reader.Elements[0].Data;
-        TransposeSHRestMat(data);
+        var gaussians = reader.Elements[0].GetData<GaussianData>();
 
-        CreateBinary(assetPath, data);
+        TransposeSHRestMat(gaussians);
+
+        ModifyRotationScaleOpacity(gaussians);
+
+        CreateBinary(assetPath, gaussians);
 
         Debug.Log($"Asset '{assetPath}' created successfully");
     }
@@ -45,17 +48,17 @@ public static class GaussianDataLoader
     /// <see cref="https://github.com/graphdeco-inria/gaussian-splatting/blob/main/scene/gaussian_model.py#L245"/>
     /// </remarks>
     /// <param name="data">Array of gaussians to process</param>
-    private static void TransposeSHRestMat(NativeArray<byte> data)
+    private static void TransposeSHRestMat(NativeArray<GaussianData> gaussians)
     {
         int structSize = UnsafeUtility.SizeOf<GaussianData>();
         int offset = 3 * 3; // SH matrix offset in struct
         int shCount = 15; // number of SH coefficient triplets to transpose
         var tmp = new float[shCount * 3]; // transposed matrix buffer
-        NativeArray<float> a = data.Reinterpret<float>(sizeof(byte));
+        NativeArray<float> a = gaussians.Reinterpret<float>(structSize);
         int stride = structSize / sizeof(float); // exact number of floats in struct
 
         int idx = offset;
-        for (int i = 0; i < data.Length / structSize; i++)
+        for (int i = 0; i < gaussians.Length; i++)
         {
             for (int j = 0; j < shCount; j++)
             {
@@ -73,11 +76,45 @@ public static class GaussianDataLoader
         }
     }
 
-    private static void CreateBinary(string path, NativeArray<byte> bytes)
+    private static void CreateBinary(string path, NativeArray<GaussianData> gaussians)
     {
+        int structSize = UnsafeUtility.SizeOf<GaussianData>();
+        NativeArray<byte> bytes = gaussians.Reinterpret<byte>(structSize);
+
         using var stream = File.Open(path, FileMode.OpenOrCreate);
         using var writer = new BinaryWriter(stream);
+
         writer.Write(bytes);
+    }
+
+    private static void ModifyRotationScaleOpacity(NativeArray<GaussianData> gaussians)
+    {
+        for (int i = 0; i < gaussians.Length; i++)
+        {
+            GaussianData g = gaussians[i];
+
+            // Rotation
+            Quaternion r = g.Rotation.normalized;
+            g.Rotation = new(r.y, r.z, r.w, r.x);
+
+            // Scale
+            Vector3 s = g.Scale;
+            g.Scale = new(
+                Mathf.Exp(s.x),
+                Mathf.Exp(s.y),
+                Mathf.Exp(s.z)
+            );
+
+            // Opacity
+            g.Opacity = Sigmoid(g.Opacity);
+
+            gaussians[i] = g;
+        }
+    }
+
+    private static float Sigmoid(float v)
+    {
+        return 1.0f / (1.0f + Mathf.Exp(-v));
     }
 
     private static bool PlyFilePathIsValid(string path)
