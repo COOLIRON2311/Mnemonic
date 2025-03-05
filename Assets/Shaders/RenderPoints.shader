@@ -14,7 +14,8 @@ Shader "Gaussian Splatting/RenderPoints"
             #include "UnityCG.cginc"
             #include "GaussianSplatting.hlsl"
 
-            StructuredBuffer<Gaussian> _DataBuffer;
+            float4x4 _MatrixLocalToWorld;
+            StructuredBuffer<Gaussian> _GSDataBuffer;
 
             struct v2f
             {
@@ -26,10 +27,11 @@ Shader "Gaussian Splatting/RenderPoints"
             v2f vert(uint vtxID : SV_VERTEXID, uint instID : SV_INSTANCEID)
             {
                 v2f o;
-                Gaussian g = _DataBuffer[instID];
-                o.vertex = UnityObjectToClipPos(g.pos);
+                Gaussian g = _GSDataBuffer[instID];
+                float3 pos = mul(_MatrixLocalToWorld, float4(g.pos, 1)).xyz;
+                o.vertex = UnityObjectToClipPos(pos);
                 o.col.rgb = g.shs.sh0;
-                o.col.a = g.opacity / 255;
+                o.col.a = g.opacity;
                 o.psize = 10;
                 return o;
             }

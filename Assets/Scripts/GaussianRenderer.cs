@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.IO;
 using Ply;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
+
+enum RenderingMode { Splats, Points }
 
 public class GaussianRenderer : MonoBehaviour
 {
@@ -14,6 +17,8 @@ public class GaussianRenderer : MonoBehaviour
     [Header("Shaders")]
     [SerializeField, Tooltip("Gaussian Splats rendering shader")]
     Shader splatsShader;
+    [SerializeField, Tooltip("Gaussian Points rendering shader")]
+    Shader pointsShader;
     [SerializeField, Tooltip("Sorting shader")]
     ComputeShader IslandGPUShader;
     [SerializeField, Tooltip("Additional rendering routines shader")]
@@ -22,6 +27,8 @@ public class GaussianRenderer : MonoBehaviour
 
     #region Modifiers
     [Header("Modifiers")]
+    [SerializeField]
+    RenderingMode renderingMode = RenderingMode.Splats;
     [Range(0.1f, 2.0f), Tooltip("Splat Scale Modifier"), SerializeField]
     float scaleModifier = 1.0f;
     [Range(0, 3), Tooltip("Spherical Harmonics Degree"), SerializeField]
@@ -39,16 +46,17 @@ public class GaussianRenderer : MonoBehaviour
     private IslandGPUSort islandGPUSort;
     private IslandGPUSort.Args islandGPUSortArgs;
     private CommandBuffer commandBuffer;
-
     private Material splatsMaterial;
-    // private Bounds bounds;
+    private Material pointsMaterial;
+    private Bounds bounds;
     private HashSet<Camera> cameraCommandBuffers;
 
     private bool ConfigIsValid
     {
         get
         {
-            if (gaussianData == null || splatsShader == null ||
+            if (gaussianData == null ||
+                splatsShader == null || pointsShader == null ||
                 IslandGPUShader == null || GSRoutines == null ||
                 !SystemInfo.supportsComputeShaders
             )
@@ -65,11 +73,14 @@ public class GaussianRenderer : MonoBehaviour
         cameraCommandBuffers = new();
 
         splatsMaterial = new Material(splatsShader) { name = "GaussianSplats" };
+        pointsMaterial = new Material(pointsShader) { name = "GaussianPoints" };
         islandGPUSort = new IslandGPUSort(IslandGPUShader);
         commandBuffer = new CommandBuffer { name = "GaussianRenderer" };
 
         gaussians = gaussianData.GetData<GaussianData>();
         splatCount = gaussians.Length;
+
+        bounds = new Bounds(transform.position, Vector3.one * 100);
 
         splatData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, splatCount, UnsafeUtility.SizeOf<GaussianData>());
         splatData.SetData(gaussians);
@@ -111,23 +122,38 @@ public class GaussianRenderer : MonoBehaviour
     {
         commandBuffer?.Clear();
 
-        Material material = splatsMaterial;
-
-        Matrix4x4 matrix = transform.localToWorldMatrix;
-
         if (!cameraCommandBuffers.Contains(camera))
         {
             camera.AddCommandBuffer(CameraEvent.BeforeForwardAlpha, commandBuffer);
             cameraCommandBuffers.Add(camera);
         }
 
-        SortGaussians(camera, matrix);
-        ProcessGaussians(camera);
+        Material material = renderingMode switch
+        {
+            RenderingMode.Splats => splatsMaterial,
+            RenderingMode.Points => pointsMaterial,
+            _ => throw new InvalidDataException("Invalid rendering mode")
+        };
 
-        material.SetBuffer("_OrderBuffer", sortKeys);
-        material.SetBuffer("_GSViewBuffer", viewData);
+        if (renderingMode == RenderingMode.Splats)
+        {
+            Matrix4x4 matrix = transform.localToWorldMatrix;
 
-        commandBuffer.DrawProcedural(indexBuffer, matrix, material, 0, MeshTopology.Triangles, 6, splatCount);
+            SortGaussians(camera, matrix);
+            ProcessGaussians(camera);
+
+            material.SetBuffer("_OrderBuffer", sortKeys);
+            material.SetBuffer("_GSViewBuffer", viewData);
+
+            commandBuffer.DrawProcedural(indexBuffer, matrix, material, 0, MeshTopology.Triangles, 6, splatCount);
+        }
+
+        else if (renderingMode == RenderingMode.Points)
+        {
+            material.SetBuffer("_GSDataBuffer", splatData);
+            material.SetMatrix("_MatrixLocalToWorld", transform.localToWorldMatrix);
+            Graphics.DrawProcedural(pointsMaterial, bounds, MeshTopology.Points, 1, splatCount);
+        }
     }
 
     private void SortGaussians(Camera camera, Matrix4x4 localToWorldMatrix)
