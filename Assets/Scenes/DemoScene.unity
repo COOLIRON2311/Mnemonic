@@ -370,8 +370,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gaussianData: {fileID: 0}
   splatsShader: {fileID: 4800000, guid: bacdc64cfcbbc924da31d46a7b21a2b6, type: 3}
-  IslandGPUShader: {fileID: 7200000, guid: fe2f9060f9e1e244ebec3c23bb40d409, type: 3}
+  pointsShader: {fileID: 4800000, guid: 928a65bb0340d6844b0274c01896f0a8, type: 3}
+  IslandGPUShader: {fileID: 0}
   GSRoutines: {fileID: 7200000, guid: 893ad4b39eafa9a4c97fd6bdbc306482, type: 3}
+  renderingMode: 1
   scaleModifier: 1
   SHDegree: 3
 --- !u!1660057539 &9223372036854775807
