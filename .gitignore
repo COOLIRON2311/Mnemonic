@@ -72,8 +72,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# .ply data files
-data/*
-!data/.keep
+# Imported gaussian assets
 /[Aa]ssets/GaussianAssets/*
 !/[Aa]ssets/GaussianAssets/.keep
