@@ -14,11 +14,14 @@ public static class GaussianDataLoader
         if (!PlyFilePathIsValid(plyFilePath))
             return;
 
-        string assetPath = EditorUtility.SaveFilePanel("Open Output Path", "", "GaussianData", "bytes");
-        assetPath = FileUtil.GetProjectRelativePath(assetPath);
-        string outputDir = Path.GetDirectoryName(assetPath);
+        string assetPath = EditorUtility.SaveFilePanel(
+            "Open Output Path", string.Empty,
+            Path.GetFileNameWithoutExtension(plyFilePath),
+            "bytes"
+        );
 
-        if (!OutputDirIsValid(outputDir))
+        assetPath = ValidateConvertOutputPath(assetPath);
+        if (assetPath == null)
             return;
 
         BinaryPlyReader reader = new(plyFilePath);
@@ -124,18 +127,22 @@ public static class GaussianDataLoader
         return true;
     }
 
-    private static bool OutputDirIsValid(string path)
+    private static string ValidateConvertOutputPath(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
             Debug.LogError($"Invalid path '{path}'");
-            return false;
+            return null;
         }
+
+        path = FileUtil.GetProjectRelativePath(path);
+
         if (!path.StartsWith("Assets"))
         {
             Debug.LogError("Output path must be a subdirectory of the project's 'Assets' directory");
-            return false;
+            return null;
         }
-        return true;
+
+        return path;
     }
 }
