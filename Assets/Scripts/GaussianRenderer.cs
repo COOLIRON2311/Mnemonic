@@ -33,6 +33,8 @@ public class GaussianRenderer : MonoBehaviour
     float scaleModifier = 1.0f;
     [Range(0, 3), Tooltip("Spherical Harmonics Degree"), SerializeField]
     int SHDegree = 3;
+    [Range(1, 360), Tooltip("Sort Splats Every N Frames"), SerializeField]
+    int sortNFrames = 1;
     #endregion
 
     private NativeArray<GaussianData> gaussians;
@@ -139,7 +141,8 @@ public class GaussianRenderer : MonoBehaviour
         {
             Matrix4x4 matrix = transform.localToWorldMatrix;
 
-            SortGaussians(camera, matrix);
+            if (Time.frameCount % sortNFrames == 0 || Time.frameCount == 1)
+                SortGaussians(camera, matrix);
             ProcessGaussians(camera);
 
             material.SetBuffer("_OrderBuffer", sortKeys);
