@@ -76,11 +76,11 @@ void GSProcess(uint3 id : SV_DISPATCHTHREADID)
 
     if (centerClipPos.w > 0) // not behind the camera
     {
-        float3x3 modelMat = computeModelMatrix(splat.scale, _ScaleModifier, splat.rot);
-        modelMat = mul((float3x3)_MatrixLocalToWorld, modelMat);
+        float3x3 RS = computeRotationScaleMatrix(splat.scale, _ScaleModifier, splat.rot);
+        RS = mul((float3x3)_MatrixLocalToWorld, RS);
 
         float3 cov3D0, cov3D1;
-        GS_computeCov3D(modelMat, cov3D0, cov3D1);
+        GS_computeCov3D(RS, cov3D0, cov3D1);
 
         float3 cov = GS_computeCov2D(centerWorldPos, _Focal, _TanFov, cov3D0, cov3D1, _MatrixV);
 

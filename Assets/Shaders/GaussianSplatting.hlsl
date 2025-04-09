@@ -137,7 +137,7 @@ void GS_computeCov3D(float3x3 M, out float3 cov3D0, out float3 cov3D1)
     cov3D1 = float3(Sigma._m11, Sigma._m12, Sigma._m22);
 }
 
-float3x3 computeModelMatrix(float3 scale, float mod, float4 rot)
+float3x3 computeRotationScaleMatrix(float3 scale, float mod, float4 rot)
 {
     // Create scaling matrix
     float3x3 S = float3x3(
