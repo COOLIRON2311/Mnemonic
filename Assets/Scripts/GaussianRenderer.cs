@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 enum RenderingMode { Splats, Points }
 
@@ -19,6 +20,8 @@ public class GaussianRenderer : MonoBehaviour
     Shader splatsShader;
     [SerializeField, Tooltip("Gaussian Points rendering shader")]
     Shader pointsShader;
+    [SerializeField, Tooltip("Composite shader")]
+    Shader compositeShader;
     [SerializeField, Tooltip("Sorting shader")]
     ComputeShader IslandGPUShader;
     [SerializeField, Tooltip("Additional rendering routines shader")]
@@ -50,6 +53,8 @@ public class GaussianRenderer : MonoBehaviour
     private CommandBuffer commandBuffer;
     private Material splatsMaterial;
     private Material pointsMaterial;
+    private Material compositeMaterial;
+    private Color clearColor;
     private Bounds bounds;
     private HashSet<Camera> cameraCommandBuffers;
 
@@ -57,7 +62,7 @@ public class GaussianRenderer : MonoBehaviour
     {
         get
         {
-            if (gaussianData == null ||
+            if (gaussianData == null || compositeShader == null ||
                 splatsShader == null || pointsShader == null ||
                 IslandGPUShader == null || GSRoutines == null ||
                 !SystemInfo.supportsComputeShaders
@@ -72,10 +77,19 @@ public class GaussianRenderer : MonoBehaviour
         if (!ConfigIsValid)
             return;
 
+        CreateResources();
+    }
+
+    private void CreateResources()
+    {
         cameraCommandBuffers = new();
 
         splatsMaterial = new Material(splatsShader) { name = "GaussianSplats" };
         pointsMaterial = new Material(pointsShader) { name = "GaussianPoints" };
+        compositeMaterial = new Material(compositeShader) { name = "Composite" };
+
+        clearColor = new Color(0, 0, 0, 0);
+
         islandGPUSort = new IslandGPUSort(IslandGPUShader);
         commandBuffer = new CommandBuffer { name = "GaussianRenderer" };
 
@@ -117,7 +131,19 @@ public class GaussianRenderer : MonoBehaviour
     private void OnDisable()
     {
         Camera.onPreCull -= OnCameraPreCull;
-        commandBuffer?.Clear();
+        if (cameraCommandBuffers != null)
+        {
+            if (commandBuffer != null)
+            {
+                foreach (var cam in cameraCommandBuffers)
+                {
+                    if (cam)
+                        cam.RemoveCommandBuffer(CameraEvent.BeforeForwardAlpha, commandBuffer);
+                }
+                commandBuffer.Clear();
+            }
+            cameraCommandBuffers.Clear();
+        }
     }
 
     private void OnCameraPreCull(Camera camera)
@@ -148,7 +174,14 @@ public class GaussianRenderer : MonoBehaviour
             material.SetBuffer("_OrderBuffer", sortKeys);
             material.SetBuffer("_GSViewBuffer", viewData);
 
+            int rtID = Shader.PropertyToID("_GaussianRT");
+            commandBuffer.GetTemporaryRT(rtID, -1, -1, 0, FilterMode.Point, GraphicsFormat.R16G16B16A16_SFloat);
+            commandBuffer.SetRenderTarget(rtID, BuiltinRenderTextureType.CurrentActive);
+            commandBuffer.ClearRenderTarget(RTClearFlags.Color, clearColor, 0, 0);
             commandBuffer.DrawProcedural(indexBuffer, matrix, material, 0, MeshTopology.Triangles, 6, splatCount);
+            commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+            commandBuffer.DrawProcedural(indexBuffer, Matrix4x4.identity, compositeMaterial, 0, MeshTopology.Triangles, 6, 1);
+            commandBuffer.ReleaseTemporaryRT(rtID);
         }
 
         else if (renderingMode == RenderingMode.Points)
