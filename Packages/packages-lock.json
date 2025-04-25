@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "asdf.b0nes.gpu_sorting": {
+      "version": "https://github.com/b0nes164/GPUSorting.git?path=/GPUSortingUnity",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "09a6081d964b682bbb58838b83ab75aebe7f4e05"
+    },
     "com.autodesk.fbx": {
       "version": "4.2.1",
       "depth": 1,

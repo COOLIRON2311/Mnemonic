@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
 enum RenderingMode { Splats, Points }
+enum SortingMode { Bitonic, Radix }
 
 public class GaussianRenderer : MonoBehaviour
 {
@@ -22,10 +23,18 @@ public class GaussianRenderer : MonoBehaviour
     Shader pointsShader;
     [SerializeField, Tooltip("Composite shader")]
     Shader compositeShader;
-    [SerializeField, Tooltip("Sorting shader")]
-    ComputeShader IslandGPUShader;
     [SerializeField, Tooltip("Additional rendering routines shader")]
     ComputeShader GSRoutines;
+    #endregion
+
+    #region Sorting
+    [Header("Sorting")]
+    [SerializeField, Tooltip("Bitonic Sorting shader")]
+    ComputeShader IslandGPUShader;
+    [SerializeField, Tooltip("Radix Sorting shader (requires DX12)")]
+    ComputeShader radixGPUShader;
+    [SerializeField]
+    SortingMode sortingMode = SortingMode.Bitonic;
     #endregion
 
     #region Modifiers
@@ -46,10 +55,18 @@ public class GaussianRenderer : MonoBehaviour
     private GraphicsBuffer splatData;
     private GraphicsBuffer viewData;
     private GraphicsBuffer indexBuffer;
-    private GraphicsBuffer sortKeys;
-    private GraphicsBuffer sortDistances;
+    private ComputeBuffer sortKeys;
+    private ComputeBuffer sortDistances;
     private IslandGPUSort islandGPUSort;
     private IslandGPUSort.Args islandGPUSortArgs;
+    #region Radix Sort Resources
+    private GPUSorting.Runtime.DeviceRadixSort deviceRadixSort;
+    private ComputeBuffer tempKeyBuffer;
+    private ComputeBuffer tempPayloadBuffer;
+    private ComputeBuffer tempGlobalHistBuffer;
+    private ComputeBuffer tempPassHistBuffer;
+    #endregion
+    private System.Action sortAction;
     private CommandBuffer commandBuffer;
     private Material splatsMaterial;
     private Material pointsMaterial;
@@ -65,7 +82,7 @@ public class GaussianRenderer : MonoBehaviour
             if (gaussianData == null || compositeShader == null ||
                 splatsShader == null || pointsShader == null ||
                 IslandGPUShader == null || GSRoutines == null ||
-                !SystemInfo.supportsComputeShaders
+                radixGPUShader == null || !SystemInfo.supportsComputeShaders
             )
                 return false;
             return true;
@@ -90,7 +107,6 @@ public class GaussianRenderer : MonoBehaviour
 
         clearColor = new Color(0, 0, 0, 0);
 
-        islandGPUSort = new IslandGPUSort(IslandGPUShader);
         commandBuffer = new CommandBuffer { name = "GaussianRenderer" };
 
         gaussians = gaussianData.GetData<GaussianData>();
@@ -107,17 +123,36 @@ public class GaussianRenderer : MonoBehaviour
         indexBuffer.SetData(new ushort[] { 0, 1, 2, 1, 3, 2 });
 
         splatCountPow2 = Mathf.NextPowerOfTwo(splatCount);
-        sortDistances = new GraphicsBuffer(GraphicsBuffer.Target.Structured, splatCountPow2, sizeof(float)) { name = "sortDistances" };
-        sortKeys = new GraphicsBuffer(GraphicsBuffer.Target.Structured, splatCountPow2, sizeof(uint)) { name = "sortKeys" };
+        sortDistances = new ComputeBuffer(splatCountPow2, sizeof(float)) { name = "sortDistances" };
+        sortKeys = new ComputeBuffer(splatCountPow2, sizeof(uint)) { name = "sortKeys" };
 
         GSRoutines.SetInt("_CountPow2", splatCountPow2);
         GSRoutines.SetBuffer(0, "_SortKeys", sortKeys);
         GSRoutines.GetKernelThreadGroupSizes(0, out uint gs, out uint _, out uint _);
         GSRoutines.Dispatch(0, (splatCountPow2 + (int)gs - 1) / (int)gs, 1, 1);
 
-        islandGPUSortArgs.inputKeys = sortDistances;
-        islandGPUSortArgs.inputValues = sortKeys;
-        islandGPUSortArgs.count = (uint)splatCountPow2;
+        switch (sortingMode)
+        {
+            case SortingMode.Radix:
+                sortAction = SortRadix;
+                deviceRadixSort = new GPUSorting.Runtime.DeviceRadixSort(
+                    radixGPUShader,
+                    splatCountPow2,
+                    ref tempKeyBuffer,
+                    ref tempPayloadBuffer,
+                    ref tempGlobalHistBuffer,
+                    ref tempPassHistBuffer
+                );
+                break;
+            case SortingMode.Bitonic:
+            default:
+                sortAction = SortBitonic;
+                islandGPUSort = new IslandGPUSort(IslandGPUShader);
+                islandGPUSortArgs.inputKeys = sortDistances;
+                islandGPUSortArgs.inputValues = sortKeys;
+                islandGPUSortArgs.count = (uint)splatCountPow2;
+                break;
+        }
     }
 
     private void OnEnable()
@@ -211,7 +246,29 @@ public class GaussianRenderer : MonoBehaviour
         commandBuffer.DispatchCompute(GSRoutines, 1, (splatCountPow2 + (int)gs - 1) / (int)gs, 1, 1);
 
         // sort splats
+        sortAction();
+    }
+
+    private void SortBitonic()
+    {
         islandGPUSort.Dispatch(commandBuffer, islandGPUSortArgs);
+    }
+
+    private void SortRadix()
+    {
+        deviceRadixSort.Sort(
+            commandBuffer,
+            splatCountPow2,
+            sortDistances,
+            sortKeys,
+            tempKeyBuffer,
+            tempPayloadBuffer,
+            tempGlobalHistBuffer,
+            tempPassHistBuffer,
+            typeof(uint),
+            typeof(uint),
+            false
+        );
     }
 
     private void ProcessGaussians(Camera camera)
@@ -258,8 +315,15 @@ public class GaussianRenderer : MonoBehaviour
         splatData?.Dispose();
         viewData?.Dispose();
         indexBuffer?.Dispose();
+
         sortKeys?.Dispose();
         sortDistances?.Dispose();
+
+        tempKeyBuffer?.Release();
+        tempPayloadBuffer?.Release();
+        tempGlobalHistBuffer?.Release();
+        tempPassHistBuffer?.Release();
+
         commandBuffer?.Clear();
         cameraCommandBuffers?.Clear();
     }

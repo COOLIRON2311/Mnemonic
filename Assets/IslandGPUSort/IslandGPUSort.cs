@@ -21,9 +21,9 @@ public struct IslandGPUSort
         /// <summary>Defines the maximum height of the bitonic sort. By default, should be the same as count for a full sort.</summary>
         public uint             maxDepth;
         /// <summary>Input Keys</summary>
-        public GraphicsBuffer   inputKeys;
+        public ComputeBuffer   inputKeys;
         /// <summary>Input Values</summary>
-        public GraphicsBuffer   inputValues;
+        public ComputeBuffer   inputValues;
 
         internal int workGroupCount;
     }

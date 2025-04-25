@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "asdf.b0nes.gpu_sorting": "https://github.com/b0nes164/GPUSorting.git?path=/GPUSortingUnity",
     "com.unity.collab-proxy": "2.3.1",
     "com.unity.feature.development": "1.0.1",
     "com.unity.formats.fbx": "4.2.1",
