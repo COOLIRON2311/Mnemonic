@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using System.Threading.Tasks;
 
 public static class GaussianDataLoader
 {
@@ -92,7 +93,7 @@ public static class GaussianDataLoader
 
     private static void ModifyRotationScaleOpacity(NativeArray<GaussianData> gaussians)
     {
-        for (int i = 0; i < gaussians.Length; i++)
+        Parallel.For(0, gaussians.Length, i =>
         {
             GaussianData g = gaussians[i];
 
@@ -112,7 +113,7 @@ public static class GaussianDataLoader
             g.Opacity = Sigmoid(g.Opacity);
 
             gaussians[i] = g;
-        }
+        });
     }
 
     private static float Sigmoid(float v)
