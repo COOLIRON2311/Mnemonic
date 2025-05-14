@@ -89,6 +89,8 @@ public class GaussianRenderer : MonoBehaviour
         }
     }
 
+    // private void FixedUpdate() => print(Time.frameCount / Time.time);
+
     private void Awake()
     {
         if (!ConfigIsValid)

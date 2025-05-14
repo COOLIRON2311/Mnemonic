@@ -3,6 +3,8 @@
 #pragma kernel GSSetSortIndices
 #pragma kernel GSComputeDistances
 #pragma kernel GSProcess
+// #pragma enable_d3d11_debug_symbols
+
 
 uint _SHDeg;
 float _ScaleModifier;

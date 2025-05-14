@@ -6,14 +6,15 @@ Shader "Gaussian Splatting/RenderSplats"
 
         Pass
         {
+            Cull Off
             ZWrite Off
             Blend OneMinusDstAlpha One
-            Cull Off
 
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma require compute
+            // #pragma enable_d3d11_debug_symbols
 
             #include "GaussianSplatting.hlsl"
 

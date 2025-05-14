@@ -4,14 +4,15 @@ Shader "Gaussian Splatting/Composite"
     {
         Pass
         {
+            Cull Off
             ZWrite Off
             ZTest Always
-            Cull Off
             Blend SrcAlpha OneMinusSrcAlpha
 
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            // #pragma enable_d3d11_debug_symbols
 
             #include "UnityCG.cginc"
 
