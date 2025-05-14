@@ -217,6 +217,63 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -160, z: 0}
+--- !u!1001 &779479630
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.30070582
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.95371693
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -145
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 121648823723746760, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6283086703627180227, guid: 803f4db6b75db404995da480807f7be4, type: 3}
+      propertyPath: m_Name
+      value: Gaussian Renderer
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 803f4db6b75db404995da480807f7be4, type: 3}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -324,66 +381,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 1
   rotSpeed: 50
---- !u!1 &1230589329
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1230589330}
-  - component: {fileID: 1230589331}
-  m_Layer: 0
-  m_Name: GaussianRenderer
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1230589330
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230589329}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.95371693, y: 0, z: 0, w: 0.30070582}
-  m_LocalPosition: {x: 0, y: 2.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: -1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -145, y: 0, z: 0}
---- !u!114 &1230589331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230589329}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9b48fbd5b1910c43bf6534852c52f57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gaussianData: {fileID: 0}
-  splatsShader: {fileID: 4800000, guid: bacdc64cfcbbc924da31d46a7b21a2b6, type: 3}
-  pointsShader: {fileID: 4800000, guid: 928a65bb0340d6844b0274c01896f0a8, type: 3}
-  compositeShader: {fileID: 4800000, guid: cfd63fc3393a80d40aedb132e2b29004, type: 3}
-  GSRoutines: {fileID: 7200000, guid: 893ad4b39eafa9a4c97fd6bdbc306482, type: 3}
-  IslandGPUShader: {fileID: 7200000, guid: fe2f9060f9e1e244ebec3c23bb40d409, type: 3}
-  radixGPUShader: {fileID: 7200000, guid: dd9e6c4b54e463c409512ef8efb72fbd, type: 3}
-  sortingMode: 1
-  renderingMode: 0
-  scaleModifier: 1
-  SHDegree: 3
-  sortNFrames: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 963194228}
   - {fileID: 705507995}
-  - {fileID: 1230589330}
+  - {fileID: 779479630}
